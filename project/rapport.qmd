@@ -1,0 +1,236 @@
+---    
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+    include-in-header:
+      - text: |
+          #import "core/typst/templates.typ": *
+          #set page( 
+            footer: context [
+              #set text(8pt, fill: luma(120))
+              #line(length: 100%, stroke: 0.5pt + luma(150))
+              #grid(
+                columns: (1fr, 1fr),
+                align(left)[Confidential / Vertrouwelijk],
+                align(right)[Page #counter(page).display() / #counter(page).final().at(0)]
+              )
+            ]
+          )
+          #set table(stroke: 0.5pt + rgb("#bdc3c7"))
+params:
+  sending_id: "4587"
+  lang: null
+  id_report: "HOSP_001"
+  banner_path: "SPF_BI-LANGUE.jpg"
+---
+
+```{=typst}
+/*
+#pagebreak()
+
+#set page(
+  width: 29.7cm,
+  height: 21cm
+)*/
+```
+```{python}
+#| label: init-modules
+#| echo: false
+
+import sys
+from pathlib import Path
+import json
+
+from core.db.db_manager import ReportDataManager
+from core.pdf import pdf_components as comp
+
+import os
+
+lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
+id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
+
+
+db = ReportDataManager(lang=lang_param, id_report=id_report_param)
+
+
+```
+
+![](SPF_BI-LANGUE.jpg){width="60%" fig-align="left"}
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("Z")
+print("```{=typst}")
+print("#align(center)[")
+print(f"  == {titre}")
+print("]")
+print("#v(10pt)")
+print("#align(center)[#line(length: 40%, stroke: 1pt + luma(180))]")
+print("#v(15pt)")
+
+print("```")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+
+df_hosp = db.get_hospital_data()
+table_md = comp.generate_hospital_table(df_hosp, db)
+
+print("```{=typst}")
+print("#align(center)[")
+print(table_md)
+print("]")
+print("```")
+
+```
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print("```{=typst}")
+print("#align(center)[")
+print(f"  == {titre}")
+print("]")
+print("#v(15pt)")
+print("```")
+```
+
+```{python}
+#| label: tableau-erreurs
+#| warning: false
+#| echo: false
+#| output: true
+df_err = db.get_errors_data()
+# On force l'affichage de l'objet Great Tables pour Quarto Typst
+comp.generate_severity_errors_table(df_err, db)
+```
+
+```{python}
+#| echo: false
+#| output: asis
+
+txt = f"""
+{db.get_txt("sev11")}
+{db.get_txt("sev12")}
+
+{db.get_txt("sev21")}
+{db.get_txt("sev22")}
+
+{db.get_txt("sev31")}
+{db.get_txt("sev32")}
+{db.get_txt("sev41")}
+{db.get_txt("sev42")}
+"""
+
+print("```{=typst}")
+
+print("#v(25pt)")
+print("#par(justify: true)[")
+print(txt)
+print("]")
+print("```")
+
+```
+
+```{=typst}
+#pagebreak()
+```
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print("```{=typst}")
+print("#align(center)[")
+print(f"  == {titre}")
+print("]")
+print("#v(15pt)")
+print("```")
+```
+
+```{python}
+#| label: tableau-erreurs2
+#| warning: false
+#| echo: false
+#| output: asis
+
+#df_err = db.get_errors_data()
+table_err = comp.generate_severity_errors_table_typst(df_err, db)
+
+print("```{=typst}")
+print(table_err)
+print("```")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+
+txt = f"""
+{db.get_txt("sev11")}
+{db.get_txt("sev12")}
+
+{db.get_txt("sev21")}
+{db.get_txt("sev22")}
+
+{db.get_txt("sev31")}
+{db.get_txt("sev32")}
+{db.get_txt("sev41")}
+{db.get_txt("sev42")}
+"""
+
+print("```{=typst}")
+
+print("#v(25pt)")
+print("#par(justify: true)[")
+print(txt)
+print("]")
+print("```")
+
+```
+
+```{=typst}
+#page_landscape()
+
+
+#title_block("TEST_SECTION 0")
+
+```
+
+
+```{python}
+#| echo: false
+#| output: asis
+
+titre = db.get_txt("ReportTitle")
+
+print("```{=typst}")
+print(f"#title_block({json.dumps(titre, ensure_ascii=False)})")
+print("```")
+
+```
+```{python}
+
+#| echo: false
+#| output: asis   
+titre= db.get_txt("ReportTitle")
+print("```{=typst}")
+print(f"#section_landscape([{f'#title_block({json.dumps(titre, ensure_ascii=False)})'}])")
+print("```")
+
+df_hosp = db.get_hospital_data()
+table_md = comp.generate_hospital_table(df_hosp, db)
+
+print("```{=typst}")
+print("#align(center)[")
+print(table_md)
+print("]")
+print("```")
+
+```

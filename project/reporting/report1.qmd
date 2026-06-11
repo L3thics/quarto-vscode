@@ -1,0 +1,184 @@
+---
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+    template-partials:
+      - core/typst/typst-show.typ
+    include-in-header:
+      - text: |
+          #import "core/typst/templates.typ": *
+          #set table(stroke: 0.5pt + rgb("#bdc3c7"))
+---
+
+```{python}
+#| label: init-modules
+#| echo: false
+#| output: asis
+import sys
+from pathlib import Path
+import json
+import os
+from core.db.db_manager import ReportDataManager
+from core.pdf import pdf_components as comp
+from core.typst_utils import build_section_title, build_txt_block, build_table_block 
+
+lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
+id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
+
+db = ReportDataManager(lang=lang_param, id_report=id_report_param)
+# Récupération optionnelle du chemin de la bannière si elle vient de la DB, 
+# ou utilisation d'une valeur par défaut
+banner_path = "SPF_BI-LANGUE.jpg" 
+
+# Récupération des textes traduits
+txt_gauche = db.get_txt("foot") + "\n" + db.get_txt("foot1")
+
+# On exporte les textes dans un fichier que Quarto/Typst peut lire
+import json
+with open("core/typst/vars.json", "w", encoding="utf-8") as f:
+    json.dump({"footer-left": txt_gauche,
+        "banner-path": banner_path}, f)
+```
+
+
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("Z")
+print(build_section_title(titre, underline=True))
+# print("```{=typst}")
+# print("#align(center)[")
+# print(f"== {titre}")
+# print("]")
+# print("#v(10pt)")
+# # print("#align(center)[#line(length: 40%, stroke: 1pt + luma(180))]")
+# print("#v(15pt)")
+# print("```")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+df_hosp = db.get_hospital_data()
+table_md = comp.generate_hospital_table(df_hosp, db)
+print(build_table_block(table_md))
+# print("```{=typst}")
+# print("#align(center)[")
+# print(table_md)
+# print("]")
+# print("```")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print(build_section_title(titre, underline=True))
+# print("```{=typst}")
+# print("#align(center)[")
+# print(f"== {titre}")
+# print("]")
+# print("#v(15pt)")
+# print("```")
+```
+
+```{python}
+#| label: tableau-erreurs
+#| warning: false
+#| echo: false
+#| output: true
+df_err = db.get_errors_data()
+comp.generate_severity_errors_table(df_err, db)
+```
+
+```{python}
+#| echo: false
+#| output: asis
+#txt = f"{db.get_txt('sev11')}{db.get_txt('sev12')}{db.get_txt('sev21')}{db.get_txt('sev22')}{db.get_txt('sev31')}{db.get_txt('sev32')}{db.get_txt('sev41')}{db.get_txt('sev42')}"
+txt = "\n".join([
+    db.get_txt('sev11'),
+    db.get_txt('sev12'),
+    db.get_txt('sev21'),
+    db.get_txt('sev22'),
+    db.get_txt('sev31'),
+    db.get_txt('sev32'),
+    db.get_txt('sev41'),
+    db.get_txt('sev42')
+])
+print(build_txt_block(txt))
+# print("```{=typst}")
+# print("#v(25pt)")
+# print("#par(justify: true)[")
+# print(txt)
+# print("]")
+# print("```")
+``` 
+
+```{=typst}
+#pagebreak()
+```
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print(build_section_title(titre, underline=True))
+```
+```{python}
+#| label: tableau-erreurs2
+#| warning: false
+#| echo: false
+#| output: asis
+# table_err = comp.generate_severity_errors_table_typst(df_err, db)
+table_err = comp.generate_severity_errors_table_typst4(df_err, db)
+print("```{=typst}")
+print(table_err)
+print("```")
+
+```
+
+```{python}
+#| echo: false
+#| output: asis
+txt = f"{db.get_txt('sev11')}{db.get_txt('sev12')}{db.get_txt('sev21')}{db.get_txt('sev22')}{db.get_txt('sev31')}{db.get_txt('sev32')}{db.get_txt('sev41')}{db.get_txt('sev42')}"
+print("```{=typst}")
+print("#v(25pt)")
+print("#par(justify: true)[")
+print(txt)
+print("]")
+print("```")
+```
+
+```{=typst}
+#page_landscape()
+#title_block("TEST_SECTION 0")
+```
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print("```{=typst}")
+print(f"#title_block({json.dumps(titre, ensure_ascii=False)})")
+print("```")
+
+```
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print("```{=typst}")
+print(f"#section_landscape([{f'#title_block({json.dumps(titre, ensure_ascii=False)})'}])")
+print("```")
+
+df_hosp = db.get_hospital_data()
+table_md = comp.generate_hospital_table(df_hosp, db)
+print("```{=typst}")
+print("#align(center)[")
+print(table_md)
+print("]")
+print("```")
+```
