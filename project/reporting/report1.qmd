@@ -189,13 +189,7 @@ else:
     print("```{=typst}")
     print(table_err)
     print("```")
-
-```
-
-```{python}
-#| echo: false
-#| output: asis
-txt = "\n".join([
+    txt = "\n".join([
     db.get_txt('sev11'),
     db.get_txt('sev12'),
     db.get_txt('sev21'),
@@ -204,9 +198,11 @@ txt = "\n".join([
     db.get_txt('sev32'),
     db.get_txt('sev41'),
     db.get_txt('sev42')
-])
-print(build_txt_block(txt))
+    ])
+    print(build_txt_block(txt))
+
 ```
+
 
 ```{=typst}
 #page_landscape()
