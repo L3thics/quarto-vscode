@@ -1,18 +1,16 @@
 ---
-format:
-  typst:
-    papersize: a4
-    margin:
-      x: 2.5cm
-      y: 2.5cm
-    template-partials:
-      - core/typst/typst-show.typ
-    include-in-header:
-      - text: |
-          #import "core/typst/templates.typ": *
-          #set table(stroke: 0.5pt + rgb("#bdc3c7"))
+title: "Mon Rapport de Données"
+params:
+  lang: "nl" # Cette valeur par défaut sera écrasée par le terminal ou le _quarto.yml
 ---
+```{python}
+#| tags: [parameters]
+#| echo: false
 
+# Ces valeurs servent de secours par défaut si rien n'est passé en ligne de commande
+lang = "fr"
+id_report = 42
+```
 ```{python}
 #| label: init-modules
 #| echo: false
@@ -26,9 +24,17 @@ from core.db.db_manager import ReportDataManager
 from core.pdf import pdf_components as comp
 from core.typst_utils import build_section_title, build_txt_block, build_table_block 
 
-lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
-id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
+# --- RECRUTEMENT SÉCURISÉ DES PARAMÈTRES ---
 
+# --- RÉCUPÉRATION DIRECTE ET SÉCURISÉE DES VARIABLES ---
+# Quarto a automatiquement écrasé 'lang' et 'id_report' si configuré dans le CLI ou le YAML
+lang_param = lang
+id_report_param = id_report
+
+# Récupération des paramètres
+#lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
+id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
+#lang_param = params.get('lang', 'fr')
 db = ReportDataManager(lang=lang_param, id_report=id_report_param)
 # Récupération optionnelle du chemin de la bannière si elle vient de la DB, 
 # ou utilisation d'une valeur par défaut
@@ -135,17 +141,48 @@ print(build_section_title(titre, underline=True))
 #| output: asis
 # table_err = comp.generate_severity_errors_table_typst(df_err, db)
 # 1. On vérifie si le DataFrame contient des données
+# décommenter ligne ci-dessous pour tester le cas où il est vide
 df_err = pd.DataFrame()
-if df_err.empty:
+#if df_err.empty:
     # On utilise votre fonction existante pour afficher la note en petite taille (8pt)
-    txt=db.get_txt('labelerr')
-    msg_pas_derreur = build_txt_block(
-        txt, 
-        size="12pt", 
-        bold=True, 
-        color="gray"
-    )
-    print(msg_pas_derreur)
+    # txt=db.get_txt('labelerr')
+    # msg_pas_derreur = build_txt_block(
+    #     txt, 
+    #     size="12pt", 
+    #     bold=True, 
+    #     color="gray"
+    # )
+    # print(msg_pas_derreur)
+if df_err.empty:
+    # On écrit directement le bloc Typst brut au format textuel sans fonction intermédiaire
+    congratulations_txt = db.get_txt('labelcongrats')
+    conclusion = db.get_txt('labelerr') 
+    
+    print("```{=typst}")
+    print("#v(10pt)")
+    print("#rect(")
+    print("  width: 100%,")
+    print("  fill: rgb(\"#e6f4ea\"),")
+    print("  stroke: 1pt + rgb(\"#137333\"),")
+    print("  radius: 4pt,")
+    print("  inset: 15pt")
+    print(")[")
+    print("  #grid(")
+    print("    columns: (auto, 1fr),")
+    print("    gutter: 12pt,")
+    print("    align: (center + horizon, left + horizon),")
+    print("    text(size: 20pt)[✅],")
+    print("    [")
+    # Utilisation de f"..." pour injecter dynamiquement des variables de la DB
+    print(f"      #text(weight: \"bold\", size: 11pt, fill: rgb(\"#137333\"))[{congratulations_txt}] \\")
+    print(f"      #text(size: 10pt, fill: rgb(\"#202124\"))[{conclusion}]")
+    print("    ]")
+    print("  )")
+    print("]")
+    print("#v(10pt)")
+    print("```")
+
+
 else:
     # 2. Si le DataFrame n'est pas vide, on génère et on affiche le tableau normalement
     table_err = comp.generate_severity_errors_table_typst4(df_err, db)

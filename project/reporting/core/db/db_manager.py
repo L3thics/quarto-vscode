@@ -1,7 +1,6 @@
 # db_manager.py
 import pandas as pd
 from tabulate import tabulate
-import papermill as pm
 from core.db.loaders import load_labels_from_csv
 from pathlib import Path
 

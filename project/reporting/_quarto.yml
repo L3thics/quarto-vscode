@@ -1,0 +1,18 @@
+project:
+  type: default
+  output-dir: output    # <-- Quarto va créer ce dossier et y placer les PDF
+
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+    template-partials:
+      - core/typst/typst-show.typ
+    include-in-header:
+      - text: |
+          #import "core/typst/templates.typ": *
+          #set table(stroke: 0.5pt + rgb("#bdc3c7"))
+    params:
+      lang: "nl"
