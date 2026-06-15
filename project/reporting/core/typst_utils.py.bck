@@ -7,16 +7,11 @@ def typst_block(content: list[str]) -> str:
         *content,
         "```"
     ])
-
 def build_section_title(titre: str, underline=False) -> str:
-    # Pour changer le style visuel de TOUS les titres de niveau 2 (==) sans casser les signets PDF
     content = [
-        "#show heading.where(level: 2): it => [",
-        "  #set align(center)",
-        "  #set text(weight: \"bold\")",
-        "  #it.body",
+        "#align(center)[",
+        f"== {titre}",
         "]",
-        f"== {titre}",  # Ce titre crée automatiquement le signet cliquable à gauche
         "#v(10pt)"
     ]
 
@@ -30,7 +25,7 @@ def build_section_title(titre: str, underline=False) -> str:
 
 def build_txt_block(
     txt: str,
-    size: str = "8pt",
+    size: str = "10pt",
     font: str = "Arial",
     bold: bool = False,
     color: str = "black"
@@ -67,3 +62,19 @@ def build_table_block(
         table_md,
         "]"
     ])
+
+# def build_table_block(
+#     table_md: str,
+#     align: str = "center",
+#     font_size: str = "10pt"
+# ) -> str:
+
+#     return typst_block([
+#         f"#set text(size: {font_size})",
+#         f"#align({align})[",
+#         "#box(width: 100%)[",
+#         table_md,
+#         "]",
+#         "]"
+#     ])
+

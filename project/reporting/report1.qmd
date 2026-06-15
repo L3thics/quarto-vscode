@@ -143,13 +143,17 @@ print("```")
 ```{python}
 #| echo: false
 #| output: asis
-txt = f"{db.get_txt('sev11')}{db.get_txt('sev12')}{db.get_txt('sev21')}{db.get_txt('sev22')}{db.get_txt('sev31')}{db.get_txt('sev32')}{db.get_txt('sev41')}{db.get_txt('sev42')}"
-print("```{=typst}")
-print("#v(25pt)")
-print("#par(justify: true)[")
-print(txt)
-print("]")
-print("```")
+txt = "\n".join([
+    db.get_txt('sev11'),
+    db.get_txt('sev12'),
+    db.get_txt('sev21'),
+    db.get_txt('sev22'),
+    db.get_txt('sev31'),
+    db.get_txt('sev32'),
+    db.get_txt('sev41'),
+    db.get_txt('sev42')
+])
+print(build_txt_block(txt))
 ```
 
 ```{=typst}
