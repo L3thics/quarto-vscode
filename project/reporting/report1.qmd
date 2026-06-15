@@ -19,6 +19,7 @@ format:
 #| output: asis
 import sys
 from pathlib import Path
+import pandas as pd #temporaire pour tester le empty
 import json
 import os
 from core.db.db_manager import ReportDataManager
@@ -133,10 +134,24 @@ print(build_section_title(titre, underline=True))
 #| echo: false
 #| output: asis
 # table_err = comp.generate_severity_errors_table_typst(df_err, db)
-table_err = comp.generate_severity_errors_table_typst4(df_err, db)
-print("```{=typst}")
-print(table_err)
-print("```")
+# 1. On vérifie si le DataFrame contient des données
+df_err = pd.DataFrame()
+if df_err.empty:
+    # On utilise votre fonction existante pour afficher la note en petite taille (8pt)
+    txt=db.get_txt('labelerr')
+    msg_pas_derreur = build_txt_block(
+        txt, 
+        size="12pt", 
+        bold=True, 
+        color="gray"
+    )
+    print(msg_pas_derreur)
+else:
+    # 2. Si le DataFrame n'est pas vide, on génère et on affiche le tableau normalement
+    table_err = comp.generate_severity_errors_table_typst4(df_err, db)
+    print("```{=typst}")
+    print(table_err)
+    print("```")
 
 ```
 
