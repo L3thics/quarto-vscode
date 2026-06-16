@@ -3,7 +3,7 @@ import pandas as pd
 from tabulate import tabulate
 from core.db.loaders import load_labels_from_csv
 from pathlib import Path
-
+import papermill as pm
 class ReportDataManager:
 
     def __init__(self, lang: str, id_report: str):

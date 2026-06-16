@@ -1,0 +1,162 @@
+---
+title: "Mon Rapport de Données"
+params:
+  lang: "nl" # Cette valeur par défaut sera écrasée par le terminal ou le _quarto.yml
+---
+```{python}
+#| tags: [parameters]
+#| echo: false
+
+# Ces valeurs servent de secours par défaut si rien n'est passé en ligne de commande
+lang = "fr"
+id_report = 42
+```
+```{python}
+#| label: init-modules
+#| echo: false
+#| output: asis
+import sys
+from pathlib import Path
+import pandas as pd #temporaire pour tester le empty
+import json
+import os
+from core.db.db_manager import ReportDataManager
+from core.pdf import pdf_components as comp
+from core.typst_utils import build_section_title, build_txt_block, build_table_block 
+
+# --- RECRUTEMENT SÉCURISÉ DES PARAMÈTRES ---
+
+# --- RÉCUPÉRATION DIRECTE ET SÉCURISÉE DES VARIABLES ---
+# Quarto a automatiquement écrasé 'lang' et 'id_report' si configuré dans le CLI ou le YAML
+lang_param = lang
+id_report_param = id_report
+
+# Récupération des paramètres
+#lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
+id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
+#lang_param = params.get('lang', 'fr')
+db = ReportDataManager(lang=lang_param, id_report=id_report_param)
+# Récupération optionnelle du chemin de la bannière si elle vient de la DB, 
+# ou utilisation d'une valeur par défaut
+banner_path = "SPF_BI-LANGUE.jpg" 
+
+# Récupération des textes traduits
+txt_gauche = db.get_txt("foot") + "\n" + db.get_txt("foot1")
+
+# On exporte les textes dans un fichier que Quarto/Typst peut lire
+import json
+with open("core/typst/vars.json", "w", encoding="utf-8") as f:
+    json.dump({"footer-left": txt_gauche,
+        "banner-path": banner_path}, f)
+```
+
+
+
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("Z")
+print(build_section_title(titre, underline=True))
+# print("```{=typst}")
+# print("#align(center)[")
+# print(f"== {titre}")
+# print("]")
+# print("#v(10pt)")
+# # print("#align(center)[#line(length: 40%, stroke: 1pt + luma(180))]")
+# print("#v(15pt)")
+# print("```")
+```
+
+```{python}
+#| echo: false
+#| output: asis
+df_hosp = db.get_hospital_data()
+table_md = comp.generate_hospital_table(df_hosp, db)
+print(build_table_block(table_md))
+# print("```{=typst}")
+# print("#align(center)[")
+# print(table_md)
+# print("]")
+# print("```")
+```
+
+
+```{=typst}
+#pagebreak()
+```
+```{python}
+#| echo: false
+#| output: asis
+titre = db.get_txt("ReportTitle")
+print(build_section_title(titre, underline=True))
+```
+```{python}
+#| label: tableau-erreurs2
+#| warning: false
+#| echo: false
+#| output: asis
+# table_err = comp.generate_severity_errors_table_typst(df_err, db)
+# 1. On vérifie si le DataFrame contient des données
+# décommenter ligne ci-dessous pour tester le cas où il est vide
+#df_err = pd.DataFrame()
+df_err = db.get_errors_data()
+#if df_err.empty:
+    # On utilise votre fonction existante pour afficher la note en petite taille (8pt)
+    # txt=db.get_txt('labelerr')
+    # msg_pas_derreur = build_txt_block(
+    #     txt, 
+    #     size="12pt", 
+    #     bold=True, 
+    #     color="gray"
+    # )
+    # print(msg_pas_derreur)
+if df_err.empty:
+    # On écrit directement le bloc Typst brut au format textuel sans fonction intermédiaire
+    congratulations_txt = db.get_txt('labelcongrats')
+    conclusion = db.get_txt('labelerr') 
+    
+    print("```{=typst}")
+    print("#v(10pt)")
+    print("#rect(")
+    print("  width: 100%,")
+    print("  fill: rgb(\"#e6f4ea\"),")
+    print("  stroke: 1pt + rgb(\"#137333\"),")
+    print("  radius: 4pt,")
+    print("  inset: 15pt")
+    print(")[")
+    print("  #grid(")
+    print("    columns: (auto, 1fr),")
+    print("    gutter: 12pt,")
+    print("    align: (center + horizon, left + horizon),")
+    print("    text(size: 20pt)[✅],")
+    print("    [")
+    # Utilisation de f"..." pour injecter dynamiquement des variables de la DB
+    print(f"      #text(weight: \"bold\", size: 11pt, fill: rgb(\"#137333\"))[{congratulations_txt}] \\")
+    print(f"      #text(size: 10pt, fill: rgb(\"#202124\"))[{conclusion}]")
+    print("    ]")
+    print("  )")
+    print("]")
+    print("#v(10pt)")
+    print("```")
+
+
+else:
+    # 2. Si le DataFrame n'est pas vide, on génère et on affiche le tableau normalement
+    table_err = comp.generate_severity_errors_table_typst4(df_err, db)
+    print("```{=typst}")
+    print(table_err)
+    print("```")
+    txt = "\n".join([
+    db.get_txt('sev11'),
+    db.get_txt('sev12'),
+    db.get_txt('sev21'),
+    db.get_txt('sev22'),
+    db.get_txt('sev31'),
+    db.get_txt('sev32'),
+    db.get_txt('sev41'),
+    db.get_txt('sev42')
+    ])
+    print(build_txt_block(txt))
+
+```
+
