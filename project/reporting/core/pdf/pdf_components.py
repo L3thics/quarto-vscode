@@ -635,7 +635,7 @@ def generate_admission_table_typst(df: pd.DataFrame, db) -> str:
         columns="type_hospi", 
         values="occurrences"
     ).fillna(0).astype(int)
-    breakpoint()
+    
     # 4. Écriture du bloc de code Typst NATIF
     typst_code = []
     typst_code.append("#set text(size: 8pt)")

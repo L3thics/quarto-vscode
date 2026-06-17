@@ -1,7 +1,6 @@
 project:
   type: default
   output-dir: output    # <-- Quarto va créer ce dossier et y placer les PDF
-
 format:
   typst:
     mainfont: ="Open sans"

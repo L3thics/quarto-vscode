@@ -30,12 +30,12 @@ from core.typst_utils import build_section_title, build_txt_block, build_table_b
 # Quarto a automatiquement écrasé 'lang' et 'id_report' si configuré dans le CLI ou le YAML
 lang_param = lang
 id_report_param = id_report
-
+mode_param = mode #manque un truc dans le 2e rapport pour que le mode soit pris en compte
 # Récupération des paramètres
 #lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
 id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
 #lang_param = params.get('lang', 'fr')
-db = ReportDataManager(lang=lang_param, id_report=id_report_param)
+db = ReportDataManager(lang=lang_param, id_report=id_report_param, mode=mode_param)
 # Récupération optionnelle du chemin de la bannière si elle vient de la DB, 
 # ou utilisation d'une valeur par défaut
 banner_path = "SPF_BI-LANGUE.jpg" 
