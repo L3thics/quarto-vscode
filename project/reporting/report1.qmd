@@ -16,10 +16,26 @@ id_report = 42
 #| echo: false
 #| output: asis
 import sys
+import importlib
 from pathlib import Path
 import pandas as pd #temporaire pour tester le empty
 import json
 import os
+# from core.db.db_manager import ReportDataManager
+# from core.pdf import pdf_components as comp
+# from core.typst_utils import build_section_title, build_txt_block, build_table_block 
+# # Force le rechargement si les fichiers .py ont changé sur le disque
+# importlib.reload(core.db.db_manager)
+# importlib.reload(core.pdf.pdf_components)
+# 1. Imports initiaux complets nécessaires pour importlib.reload
+import core.db.db_manager
+import core.pdf.pdf_components
+
+# 2. Forcer le rechargement propre depuis le disque
+importlib.reload(core.db.db_manager)
+importlib.reload(core.pdf.pdf_components)
+
+# 3. Extraction de vos alias et classes comme dans votre code d'origine
 from core.db.db_manager import ReportDataManager
 from core.pdf import pdf_components as comp
 from core.typst_utils import build_section_title, build_txt_block, build_table_block 
@@ -231,6 +247,28 @@ table_md = comp.generate_hospital_table(df_hosp, db)
 print("```{=typst}")
 print("#align(center)[")
 print(table_md)
+print("]")
+print("```")
+```
+
+
+
+```{python}
+#| echo: false
+#| output: asis
+
+
+
+# 1. Récupération des données brutes
+raw_data = db.get_admission_data()
+
+# 2. Récupération du code natif Typst
+code_typst = comp.generate_admission_table_typst(raw_data,db)
+
+# 3. Injection directe dans le rendu de la page
+print("```{=typst}")
+print("#align(center)[")
+print(code_typst)
 print("]")
 print("```")
 ```

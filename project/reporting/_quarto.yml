@@ -4,6 +4,7 @@ project:
 
 format:
   typst:
+    mainfont: ="Open sans"
     papersize: a4
     margin:
       x: 2.5cm

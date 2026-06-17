@@ -31,7 +31,7 @@ def build_section_title(titre: str, underline=False) -> str:
 def build_txt_block(
     txt: str,
     size: str = "8pt",
-    font: str = "Arial",
+    font: str = "Open Sans",
     bold: bool = False,
     color: str = "black"
 ) -> str:
@@ -57,7 +57,7 @@ def build_table_block(
     table_md: str,
     align: str = "center",
     font_size: str = "10pt",
-    font: str = "Arial"
+    font: str = "Open Sans"
 ) -> str:
 
     return typst_block([
