@@ -16,10 +16,26 @@ id_report = 42
 #| echo: false
 #| output: asis
 import sys
+import importlib
 from pathlib import Path
 import pandas as pd #temporaire pour tester le empty
 import json
 import os
+# from core.db.db_manager import ReportDataManager
+# from core.pdf import pdf_components as comp
+# from core.typst_utils import build_section_title, build_txt_block, build_table_block 
+# # Force le rechargement si les fichiers .py ont changé sur le disque
+# importlib.reload(core.db.db_manager)
+# importlib.reload(core.pdf.pdf_components)
+# 1. Imports initiaux complets nécessaires pour importlib.reload
+import core.db.db_manager
+import core.pdf.pdf_components
+
+# 2. Forcer le rechargement propre depuis le disque
+importlib.reload(core.db.db_manager)
+importlib.reload(core.pdf.pdf_components)
+
+# 3. Extraction de vos alias et classes comme dans votre code d'origine
 from core.db.db_manager import ReportDataManager
 from core.pdf import pdf_components as comp
 from core.typst_utils import build_section_title, build_txt_block, build_table_block 
@@ -30,7 +46,7 @@ from core.typst_utils import build_section_title, build_txt_block, build_table_b
 # Quarto a automatiquement écrasé 'lang' et 'id_report' si configuré dans le CLI ou le YAML
 lang_param = lang
 id_report_param = id_report
-mode_param = mode #manque un truc dans le 2e rapport pour que le mode soit pris en compte
+mode_param = mode
 # Récupération des paramètres
 #lang_param = os.getenv("QUARTO_PARAM_lang", os.getenv("QUARTO_PARAM_LANG", "fr"))
 id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID_REPORT", 42))
