@@ -8,15 +8,34 @@
     margin: (x: 2.5cm, top: 2.5cm, bottom: 2.5cm),
     
     // Le footer est configuré globalement
-    footer: context [
-      #set text(8pt, fill: luma(120))
-      #line(length: 100%, stroke: 0.5pt + luma(150))
-      #grid(
-        columns: (1fr, 1fr),
-        align(left)[#vars.at("footer-left", default: "")],
-        align(right)[Page #counter(page).display() / #counter(page).final().at(0)]
+footer: context [
+  #set text(8pt, fill: luma(120))
+  #line(length: 100%, stroke: 0.5pt + luma(150))
+  
+  // Définition du dégradé linéaire à -35°
+  #let page_gradient = gradient.linear(
+    angle: -35deg,
+    rgb("0085e5"),
+    rgb("40e4ad")
+  )
+
+  #grid(
+    columns: (1fr, 1fr),
+    align(left + horizon)[#vars.at("footer-left", default: "")],
+    align(right + horizon)[
+      #block(
+        inset: 6pt,
+        fill: page_gradient, // Applique le dégradé en fond
+        radius: 3pt,
+        [
+          #set text(fill: white) // Change le texte en blanc pour la lisibilité
+          Page #counter(page).display() / #counter(page).final().at(0)
+        ]
       )
     ]
+  )
+]
+    
   )
   
   // Si une bannière est définie, on l'affiche TOUT EN HAUT du flux du document
