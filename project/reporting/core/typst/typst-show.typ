@@ -29,7 +29,7 @@ footer: context [
         radius: 3pt,
         [
           #set text(fill: white) // Change le texte en blanc pour la lisibilité
-          Page #counter(page).display() / #counter(page).final().at(0)
+          #counter(page).display() / #counter(page).final().at(0) // metre page devant pour afficher page devant les counts
         ]
       )
     ]

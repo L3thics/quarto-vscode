@@ -2,6 +2,12 @@
 title: "Mon Rapport de Données"
 params:
   lang: "nl" # Cette valeur par défaut sera écrasée par le terminal ou le _quarto.yml
+format:
+  typst:
+    # On applique le filtre pour modifier le nom du PDF à la volée
+    filters:
+        - dynamic_name.lua
+
 ---
 ```{python}
 #| tags: [parameters]
@@ -54,7 +60,14 @@ id_report_param = os.getenv("QUARTO_PARAM_id_report", os.getenv("QUARTO_PARAM_ID
 db = ReportDataManager(lang=lang_param, id_report=id_report_param, mode=mode_param)
 # Récupération optionnelle du chemin de la bannière si elle vient de la DB, 
 # ou utilisation d'une valeur par défaut
-banner_path = "SPF_BI-LANGUE.jpg" 
+if lang_param == "fr":
+        banner_path =  "SPF_FR.jpg"
+elif lang_param == "nl":
+    banner_path = "SPF_NL.jpg"
+else:
+    banner_path = "SPF_BI-LANGUE.jpg"
+
+#banner_path = "SPF_BI-LANGUE.jpg" 
 
 # Récupération des textes traduits
 txt_gauche = db.get_txt("foot") + "\n" + db.get_txt("foot1")
