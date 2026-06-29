@@ -713,9 +713,9 @@ table.cell(fill: {total_fill})[{make_num_cell(int(totaux_par_sev[sev]), bold=Tru
     # Total général (neutre, un peu plus marqué)
     lignes.append(
         f"""
-table.cell(fill: rgb("#40e4ad"))[{make_text_cell(txt_total_general, align="center", bold=True)}],
-table.cell(fill: rgb("#40e4ad"))[{make_text_cell("", bold=True)}],
-table.cell(fill: rgb("#40e4ad"))[{make_text_cell("", bold=True)}],
+table.cell(fill: rgb("#dbe5f1"))[{make_text_cell(txt_total_general, align="center", bold=True)}],
+table.cell(fill: rgb("#dbe5f1"))[{make_text_cell("", bold=True)}],
+table.cell(fill: rgb("#dbe5f1"))[{make_text_cell("", bold=True)}],
 table.cell(fill: rgb("#dbe5f1"))[{make_num_cell(total_general, bold=True)}]
 """.strip()
     )
@@ -725,13 +725,13 @@ table.cell(fill: rgb("#dbe5f1"))[{make_num_cell(total_general, bold=True)}]
   #table(
     columns: (1.1fr, 2fr, 4.8fr, 1.4fr),
     inset: (x: 4pt, y: 3pt),
-    column-gutter: 0pt,
+    column-gutter: 0pt, 
     stroke: 0.6pt + rgb("#c7d0d9"),
 
     table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_sev}]]],
-    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_code}]]],
-    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_desc}]]],
-    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_nb}]]],
+    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_code}]]],
+    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_desc}]]],
+    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_nb}]]],
 
     {",\n\n    ".join(lignes)}
   )
