@@ -709,3 +709,116 @@ def generate_admission_table_typst(df: pd.DataFrame, db) -> str:
     typst_code.append("#v(8pt)")
     
     return "\n".join(typst_code)
+
+    import pandas as pd
+
+def generate_admission_table_typst2(df: pd.DataFrame, db) -> str:
+    """
+    Génère la syntaxe Typst d'un tableau multi-entêtes d'admissions.
+    Applique l'esthétique v4 basée sur la charte graphique page_gradient.
+    """
+    # 1. Calculs des indicateurs globaux (Avant filtrage Top 10)
+    total_global = df["occurrences"].sum()
+    total_diags_uniques = df["code_diag"].nunique()
+    
+    # 2. Calculs du Top 10
+    top_10_codes = (
+        df.groupby("code_diag")["occurrences"]
+        .sum()
+        .nlargest(10)
+        .index.tolist()
+    )
+    
+    df_top10 = df[df["code_diag"].isin(top_10_codes)].copy()
+    total_top10 = df_top10["occurrences"].sum()
+    
+    # 3. Pivot et tri des données du Top 10
+    types_hospi = ['H', 'F', 'M', 'L']
+    df_top10["diag_complet"] = df_top10["code_diag"] + " - " + df_top10["description"]
+    
+    df_pivot = df_top10.pivot(
+        index="diag_complet", 
+        columns="type_hospi", 
+        values="occurrences"
+    ).fillna(0).astype(int)
+    
+    # 4. Écriture du bloc de code Typst NATIF
+    typst_code = []
+    
+    # Définition locale des couleurs du dégradé pour Typst
+    typst_code.append('#let brand-blue = rgb("0085e5")')
+    typst_code.append('#let brand-teal = rgb("40e4ad")')
+    typst_code.append('#let brand-teal-light = rgb("40e4ad").lighten(80%)')
+    typst_code.append('#let bg-zebra = rgb("f8fafc")')
+    
+    typst_code.append("#set text(size: 8pt)")
+    typst_code.append("#v(8pt)")
+    typst_code.append("#table(")
+    typst_code.append("  columns: (2.5fr, " + ", ".join(["1fr, 1fr, 1fr"] * 4) + "),")
+    typst_code.append("  align: (left, " + ", ".join(["right"] * 12) + "),")
+    typst_code.append('  stroke: 0.3pt + rgb("#e0e0e0"),')
+    
+    # Gestion des arrière-plans adaptée à la nouvelle charte
+    typst_code.append("  fill: (x, y) => ")
+    typst_code.append('    if y == 0 or y == 1 { brand-blue }')       # Bleu principal pour l'en-tête
+    typst_code.append('    else if y == 12 { brand-teal-light }')    # Turquoise très clair pour le total Top 10
+    typst_code.append('    else if y >= 13 { rgb("#f1f5f9") }')      # Gris neutre clair pour le contexte global
+    typst_code.append('    else if calc.even(y) { bg-zebra }') 
+    typst_code.append("    else { none },")
+    
+    # En-tête Niveau 1 : Spanners
+    typst_code.append('  table.cell(rowspan: 2, align: center + horizon, stroke: none)[#set text(fill: white); *Code & Description Diagnostic*],')
+    for t in types_hospi:
+        label = {"H": "Hospitalisation (H)", "F": "Ambulatoire (F)", "M": "Médecine (M)", "L": "Long Séjour (L)"}[t]
+        typst_code.append(f'  table.cell(colspan: 3, align: center, stroke: none)[#set text(fill: white); *{label}*],')
+        
+    # En-tête Niveau 2 : Sous-colonnes
+    sub_headers = []
+    for _ in types_hospi:
+        sub_headers.extend([
+            'table.cell(stroke: none)[#set text(fill: white); *N*]', 
+            'table.cell(stroke: none)[#set text(fill: white); *% Top 10*]', 
+            'table.cell(stroke: none)[#set text(fill: white); *% Global*]'
+        ])
+    typst_code.append("  " + ", ".join(sub_headers) + ",")
+    
+    # Injection des lignes du Top 10 (y de 2 à 11)
+    totals_occurrences = {t: 0 for t in types_hospi}
+    for diag, row in df_pivot.iterrows():
+        line_cells = [f"[{diag}]"]
+        for t in types_hospi:
+            occ = row.get(t, 0)
+            totals_occurrences[t] += occ
+            
+            p_top10 = (occ / total_top10) * 100 if total_top10 > 0 else 0
+            p_glob = (occ / total_global) * 100 if total_global > 0 else 0
+            
+            line_cells.append(f"[{occ:,}]")
+            line_cells.append(f"[{p_top10:.1f}%]")
+            line_cells.append(f"[{p_glob:.1f}%]")
+            
+        typst_code.append("  " + ", ".join(line_cells) + ",")
+        
+    # 5. Ligne de Totalisation Actuelle (y = 12) - Texte en bleu pour contraster avec le fond turquoise clair
+    total_line = ["[*Total (Top 10)*]"]
+    for t in types_hospi:
+        t_occ = totals_occurrences[t]
+        t_p_top10 = (t_occ / total_top10) * 100 if total_top10 > 0 else 0
+        t_p_glob = (t_occ / total_global) * 100 if total_global > 0 else 0
+        
+        total_line.append(f"[*{t_occ:,}*]")
+        total_line.append(f"[*{t_p_top10:.1f}%*]")
+        total_line.append(f"[*{t_p_glob:.1f}%*]")
+    typst_code.append("  " + ", ".join(total_line) + ",")
+        
+    # 6. LIGNES DE CONTEXTE (y = 13 et y = 14)
+    lbl_total_sejours = "Nombre total de séjours (tous diagnostics confondus) :"
+    typst_code.append(f'  table.cell(colspan: 12, align: right)[_ {lbl_total_sejours} _], [*{total_global:,}*],')
+    
+    lbl_total_diags = "Nombre total de codes diagnostics (CIM-10) distincts :"
+    typst_code.append(f'  table.cell(colspan: 12, align: right)[_ {lbl_total_diags} _], [*{total_diags_uniques}*]')
+    
+    typst_code.append(")")
+    typst_code.append("#v(8pt)")
+    
+    return "\n".join(typst_code)

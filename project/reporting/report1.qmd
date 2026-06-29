@@ -271,7 +271,7 @@ print("```")
 raw_data = db.get_admission_data()
 
 # 2. Récupération du code natif Typst
-code_typst = comp.generate_admission_table_typst(raw_data,db)
+code_typst = comp.generate_admission_table_typst2(raw_data,db)
 
 # 3. Injection directe dans le rendu de la page
 print("```{=typst}")

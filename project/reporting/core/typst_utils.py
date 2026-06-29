@@ -8,7 +8,7 @@ def typst_block(content: list[str]) -> str:
         "```"
     ])
 
-def build_section_title(titre: str, underline=False) -> str:
+def build_section_title_old(titre: str, underline=False) -> str:
     # Pour changer le style visuel de TOUS les titres de niveau 2 (==) sans casser les signets PDF
     content = [
         "#show heading.where(level: 2): it => [",
@@ -27,6 +27,27 @@ def build_section_title(titre: str, underline=False) -> str:
 
     return typst_block(content)
 
+def build_section_title(titre: str, underline=False) -> str:
+    # Définition du dégradé selon votre charte graphique
+    content = [
+        '#let title_gradient = gradient.linear(angle: -35deg, rgb("0085e5"), rgb("40e4ad"))',
+        "",
+        "#show heading.where(level: 2): it => [",
+        "  #set align(center)",
+        "  #set text(weight: \"bold\")",
+        "  #it.body",
+        "]",
+        f"== {titre}",  # Ce titre crée automatiquement le signet cliquable à gauche
+        "#v(10pt)"
+    ]
+
+    if underline:
+        # Application du dégradé sur le stroke de la ligne
+        content.append("#align(center)[#line(length: 40%, stroke: 2pt + title_gradient)]")
+
+    content.append("#v(15pt)")
+
+    return typst_block(content)
 
 def build_txt_block(
     txt: str,
