@@ -475,6 +475,141 @@ table.cell(fill: rgb("#dbe5f1"))[{make_num_cell(total_general, bold=True)}]
     return table_typst
 import pandas as pd
 
+def generate_severity_errors_table_typst4_degrade(df_err, db_manager):
+    """Génère un tableau Typst natif, compact et stylé pour les erreurs par sévérité,
+    avec un dégradé continu sur toute la largeur de l'en-tête principal."""
+
+    df_err = df_err.copy()
+
+    df_err["Severite"] = pd.to_numeric(df_err["Severite"], errors="coerce").astype("Int64")
+    df_err["Nb_Erreur"] = pd.to_numeric(df_err["Nb_Erreur"], errors="coerce").astype("Int64")
+
+    # On enlève les lignes invalides si besoin
+    df_err = df_err.dropna(subset=["Severite", "Nb_Erreur", "Code_Erreur", "Description"])
+
+    totaux_par_sev = df_err.groupby("Severite")["Nb_Erreur"].sum().to_dict()
+    total_general = int(df_err["Nb_Erreur"].sum())
+
+    # Labels traduits / échappés
+    th_sev = typst_escape(db_manager.get_txt("labelsev"))
+    th_code = typst_escape(db_manager.get_txt("labelctrl"))
+    th_desc = typst_escape(db_manager.get_txt("labeldesc"))
+    th_nb = typst_escape(db_manager.get_txt("labelnb"))
+    txt_total_general = typst_escape(db_manager.get_txt("total_general"))
+
+    def sev_color(sev_num: int) -> str:
+        """Couleur forte selon la sévérité."""
+        colors = {
+            1: '#d32f2f',   # rouge
+            2: '#f57c00',   # orange
+            3: '#388e3c',   # vert
+            4: '#1976d2'    # bleu
+        }
+        return colors.get(sev_num, '#0085e5')  # Bleu principal par défaut
+
+    def sev_soft_color(sev_num: int) -> str:
+        """Couleur atténuée pour les lignes de total par sévérité."""
+        soft_colors = {
+            1: '#fdecea',   # rouge très clair
+            2: '#fff4e5',   # orange très clair
+            3: '#edf7ed',   # vert très clair
+            4: '#eaf2fb'    # bleu très clair
+        }
+        return soft_colors.get(sev_num, '#f1f5f9')
+
+    def make_sev_cell(sev_num: int) -> str:
+        """Cellule sévérité avec fond complètement coloré."""
+        color = sev_color(sev_num)
+        return (
+            f'table.cell(fill: rgb("{color}"))'
+            f'[#align(center)[#text(fill: white, weight: "bold")[{sev_num}]]]'
+        )
+
+    def make_text_cell(txt: str, align: str = "left", bold: bool = False) -> str:
+        """Contenu de cellule texte (sans table.cell externe)."""
+        txt = typst_escape(str(txt))
+        if bold:
+            return f'#align({align})[#text(weight: "bold")[{txt}]]'
+        return f'#align({align})[{txt}]'
+
+    def make_num_cell(value, bold: bool = False) -> str:
+        """Contenu de cellule numérique aligné à droite (sans table.cell externe)."""
+        if bold:
+            return f'#align(right)[#text(weight: "bold")[{value}]]'
+        return f'#align(right)[{value}]'
+
+    lignes = []
+    row_index = 0  # pour zebra rows
+
+    for sev, groupe in df_err.groupby("Severite", sort=True):
+        sev = int(sev)
+
+        for _, row in groupe.iterrows():
+            code = row["Code_Erreur"]
+            desc = row["Description"]
+            nb = int(row["Nb_Erreur"])
+
+            # Zebra rows sur les 3 colonnes texte/nombre
+            zebra_fill = 'rgb("#f8fafc")' if row_index % 2 else 'white'
+
+            ligne = f"""
+{make_sev_cell(sev)},
+table.cell(fill: {zebra_fill})[{make_text_cell(code, align="left")}],
+table.cell(fill: {zebra_fill})[{make_text_cell(desc, align="left")}],
+table.cell(fill: {zebra_fill})[{make_num_cell(nb)}]
+""".strip()
+
+            lignes.append(ligne)
+            row_index += 1
+
+        # Ligne total par sévérité dans un ton atténué
+        total_fill = f'rgb("{sev_soft_color(sev)}")'
+
+        lignes.append(
+            f"""
+table.cell(fill: {total_fill})[{make_text_cell(f"Total {sev}", align="center", bold=True)}],
+table.cell(fill: {total_fill})[{make_text_cell("", bold=True)}],
+table.cell(fill: {total_fill})[{make_text_cell("", bold=True)}],
+table.cell(fill: {total_fill})[{make_num_cell(int(totaux_par_sev[sev]), bold=True)}]
+""".strip()
+        )
+
+    # Total général (Couleur turquoise atténuée de la charte)
+    lignes.append(
+        f"""
+table.cell(fill: brand-teal-light)[#set text(fill: rgb("0085e5")); {make_text_cell(txt_total_general, align="center", bold=True)}],
+table.cell(fill: brand-teal-light)[{make_text_cell("", bold=True)}],
+table.cell(fill: brand-teal-light)[{make_text_cell("", bold=True)}],
+table.cell(fill: brand-teal-light)[#set text(fill: rgb("0085e5")); {make_num_cell(total_general, bold=True)}]
+""".strip()
+    )
+
+    table_typst = f"""
+#align(center)[
+  #let header-gradient = gradient.linear(angle: -35deg, rgb("0085e5"), rgb("40e4ad"))
+  #let brand-teal-light = rgb("40e4ad").lighten(80%)
+  
+  #table(
+    columns: (1.1fr, 2fr, 4.8fr, 1.4fr),
+    inset: (x: 4pt, y: 3pt),
+    column-gutter: 0pt,
+    stroke: 0.3pt + rgb("#e0e0e0"),
+    
+    // Règle de remplissage global : si y == 0, on applique le dégradé continu sur TOUTE la ligne
+    fill: (x, y) => if y == 0 {{ header-gradient }} else {{ none }},
+
+    // En-têtes (sans attribut fill individuel pour laisser passer le dégradé global de la ligne)
+    table.cell()[#align(center)[#text(fill: white, weight: "bold")[{th_sev}]]],
+    table.cell()[#align(center)[#text(fill: white, weight: "bold")[{th_code}]]],
+    table.cell()[#align(center)[#text(fill: white, weight: "bold")[{th_desc}]]],
+    table.cell()[#align(center)[#text(fill: white, weight: "bold")[{th_nb}]]],
+
+    {",\n\n    ".join(lignes)}
+  )
+]
+""".strip()
+
+    return table_typst
 
 def generate_severity_errors_table_typst4(df_err, db_manager):
     """Génère un tableau Typst natif, compact et stylé pour les erreurs par sévérité,
@@ -578,9 +713,9 @@ table.cell(fill: {total_fill})[{make_num_cell(int(totaux_par_sev[sev]), bold=Tru
     # Total général (neutre, un peu plus marqué)
     lignes.append(
         f"""
-table.cell(fill: rgb("#dbe5f1"))[{make_text_cell(txt_total_general, align="center", bold=True)}],
-table.cell(fill: rgb("#dbe5f1"))[{make_text_cell("", bold=True)}],
-table.cell(fill: rgb("#dbe5f1"))[{make_text_cell("", bold=True)}],
+table.cell(fill: rgb("#40e4ad"))[{make_text_cell(txt_total_general, align="center", bold=True)}],
+table.cell(fill: rgb("#40e4ad"))[{make_text_cell("", bold=True)}],
+table.cell(fill: rgb("#40e4ad"))[{make_text_cell("", bold=True)}],
 table.cell(fill: rgb("#dbe5f1"))[{make_num_cell(total_general, bold=True)}]
 """.strip()
     )
@@ -594,9 +729,9 @@ table.cell(fill: rgb("#dbe5f1"))[{make_num_cell(total_general, bold=True)}]
     stroke: 0.6pt + rgb("#c7d0d9"),
 
     table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_sev}]]],
-    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_code}]]],
-    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_desc}]]],
-    table.cell(fill: rgb("#1f4e79"))[#align(center)[#text(fill: white, weight: "bold")[{th_nb}]]],
+    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_code}]]],
+    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_desc}]]],
+    table.cell(fill: rgb("#0085e5"))[#align(center)[#text(fill: white, weight: "bold")[{th_nb}]]],
 
     {",\n\n    ".join(lignes)}
   )

@@ -186,8 +186,8 @@ if df_err.empty:
     print("#v(10pt)")
     print("#rect(")
     print("  width: 100%,")
-    print("  fill: rgb(\"#e6f4ea\"),")
-    print("  stroke: 1pt + rgb(\"#137333\"),")
+    print("  fill: rgb(\"#40e4ad\"),") # color e6f4ea
+    print("  stroke: 1pt + rgb(\"#0085e5\"),")
     print("  radius: 4pt,")
     print("  inset: 15pt")
     print(")[")
@@ -197,9 +197,9 @@ if df_err.empty:
     print("    align: (center + horizon, left + horizon),")
     print("    text(size: 20pt)[✅],")
     print("    [")
-    # Utilisation de f"..." pour injecter dynamiquement des variables de la DB
-    print(f"      #text(weight: \"bold\", size: 11pt, fill: rgb(\"#137333\"))[{congratulations_txt}] \\")
-    print(f"      #text(size: 10pt, fill: rgb(\"#202124\"))[{conclusion}]")
+    # Utilisation de f"..." pour injecter dynamiquement des variables de la DB  137333
+    print(f"      #text(weight: \"bold\", size: 11pt, fill: rgb(\"#40e4ad\"))[{congratulations_txt}] \\")
+    print(f"      #text(size: 10pt, fill: rgb(\"#e4e7f1\"))[{conclusion}]")
     print("    ]")
     print("  )")
     print("]")
